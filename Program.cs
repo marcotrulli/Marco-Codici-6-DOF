@@ -5,6 +5,7 @@ using System.Text;
 using System.Diagnostics;
 using System.Windows.Forms;
 using System.Drawing;
+using System.Collections.Generic;
 
 namespace Robot6DOFLauncher
 {
@@ -13,6 +14,10 @@ namespace Robot6DOFLauncher
         private static HttpListener listener;
         private static string workDir;
         private static int port = 8765;
+        
+        // Simulazione ESP32 virtuale (PC mode)
+        private static List<string> virtualEsp32Log = new List<string>();
+        private static bool virtualEsp32Connected = true;
 
         [STAThread]
         static void Main()
@@ -77,7 +82,8 @@ namespace Robot6DOFLauncher
                     listener.Start();
                 }
                 listener.BeginGetContext(OnContext, null);
-                File.WriteAllText(Path.Combine(workDir, "config", "server_status.txt"), "RUNNING on port " + port + " at " + DateTime.Now.ToString());
+                File.WriteAllText(Path.Combine(workDir, "config", "server_status.txt"), 
+                    "RUNNING on port " + port + " at " + DateTime.Now.ToString() + "\nMODE: PC_SIMULATION");
             }
             catch (Exception ex)
             {
@@ -112,6 +118,87 @@ namespace Robot6DOFLauncher
 
                 string rawUrl = req.RawUrl.TrimStart('/');
                 if (string.IsNullOrEmpty(rawUrl) || rawUrl == "") rawUrl = "ik_simulator_v30.html";
+
+                // === API MODALITA' OPERATIVA ===
+                if (rawUrl.StartsWith("api/mode"))
+                {
+                    byte[] data = Encoding.UTF8.GetBytes("{\"mode\":\"simulation\",\"platform\":\"windows\"}");
+                    resp.ContentType = "application/json";
+                    resp.OutputStream.Write(data, 0, data.Length);
+                    resp.Close();
+                    return;
+                }
+
+                // === API ESP32 VIRTUALE (SIMULAZIONE PC) ===
+                if (rawUrl.StartsWith("api/esp32/status") && req.HttpMethod == "GET")
+                {
+                    byte[] data = Encoding.UTF8.GetBytes(
+                        "{\"connected\":" + (virtualEsp32Connected ? "true" : "false") + 
+                        ",\"port\":\"VIRTUAL_SIMULATION\",\"mode\":\"simulation\"}");
+                    resp.ContentType = "application/json";
+                    resp.OutputStream.Write(data, 0, data.Length);
+                    resp.Close();
+                    return;
+                }
+
+                if (rawUrl.StartsWith("api/esp32/send") && req.HttpMethod == "POST")
+                {
+                    using (var reader = new StreamReader(req.InputStream, req.ContentEncoding))
+                    {
+                        string body = reader.ReadToEnd();
+                        // Parse JSON command
+                        if (body.Contains("\"command\""))
+                        {
+                            int startIdx = body.IndexOf("\"command\":\"") + 11;
+                            int endIdx = body.IndexOf("\"", startIdx);
+                            if (startIdx > 10 && endIdx > startIdx)
+                            {
+                                string command = body.Substring(startIdx, endIdx - startIdx);
+                                // Log virtuale
+                                lock (virtualEsp32Log)
+                                {
+                                    virtualEsp32Log.Add("[SIM] " + DateTime.Now.ToString("HH:mm:ss") + " >> " + command);
+                                    if (virtualEsp32Log.Count > 100) virtualEsp32Log.RemoveAt(0);
+                                }
+                                Console.WriteLine("[VIRTUAL ESP32] Comando simulato: " + command);
+                            }
+                        }
+                    }
+                    byte[] ok = Encoding.UTF8.GetBytes("{\"success\":true,\"simulated\":true}");
+                    resp.ContentType = "application/json";
+                    resp.OutputStream.Write(ok, 0, ok.Length);
+                    resp.Close();
+                    return;
+                }
+
+                if (rawUrl.StartsWith("api/esp32/logs") && req.HttpMethod == "GET")
+                {
+                    string logsJson = "[";
+                    lock (virtualEsp32Log)
+                    {
+                        for (int i = 0; i < virtualEsp32Log.Count; i++)
+                        {
+                            logsJson += "\"" + virtualEsp32Log[i].Replace("\"", "\\\"") + "\"";
+                            if (i < virtualEsp32Log.Count - 1) logsJson += ",";
+                        }
+                    }
+                    logsJson += "]";
+                    byte[] data = Encoding.UTF8.GetBytes(logsJson);
+                    resp.ContentType = "application/json";
+                    resp.OutputStream.Write(data, 0, data.Length);
+                    resp.Close();
+                    return;
+                }
+
+                if (rawUrl.StartsWith("api/esp32/reconnect") && req.HttpMethod == "POST")
+                {
+                    virtualEsp32Connected = true;
+                    byte[] ok = Encoding.UTF8.GetBytes("{\"success\":true,\"connected\":true,\"simulated\":true}");
+                    resp.ContentType = "application/json";
+                    resp.OutputStream.Write(ok, 0, ok.Length);
+                    resp.Close();
+                    return;
+                }
 
                 // API per salvataggio e caricamento automatico
                 if (rawUrl.StartsWith("api/save_stl_config") && req.HttpMethod == "POST")
@@ -210,7 +297,7 @@ namespace Robot6DOFLauncher
             {
                 trayIcon = new NotifyIcon()
                 {
-                    Text = "Digital Twin 6 DOF - Server Attivo",
+                    Text = "Digital Twin 6 DOF - Server Attivo (PC Simulazione)",
                     Icon = SystemIcons.Application,
                     Visible = true
                 };
