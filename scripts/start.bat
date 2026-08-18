@@ -13,3 +13,7 @@ if not exist "node_modules\" (
 
 REM Avvia server
 node server.js
+
+echo.
+echo Il server si e' arrestato.
+pause
