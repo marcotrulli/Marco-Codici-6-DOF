@@ -35,6 +35,18 @@ npm start
 ### 4. Accesso
 Apri il browser su: `http://localhost:8765`
 
+## 🔄 Sincronizzazione automatica con GitHub
+
+Per avere una cartella sul desktop sempre allineata a GitHub, clonala una volta sola:
+
+```bash
+git clone https://github.com/marcotrulli/Marco-Codici-6-DOF.git
+```
+
+poi avvia `scripts\SINCRONIZZA_DA_GITHUB.bat`: ogni 30 secondi scarica le modifiche
+presenti su GitHub e aggiorna i file locali. Le modifiche locali non committate
+vengono messe da parte e riapplicate dopo l'aggiornamento.
+
 ## 📁 Struttura
 
 ```
