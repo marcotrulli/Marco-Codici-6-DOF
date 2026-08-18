@@ -9,8 +9,18 @@ const PORT = 8765;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 app.use(express.static(__dirname));
+
+const CONFIG_DIR = path.join(__dirname, 'config');
+
+function saveConfigFile(fileName, data) {
+    fs.mkdirSync(CONFIG_DIR, { recursive: true });
+    const target = path.join(CONFIG_DIR, fileName);
+    const tmp = target + '.tmp';
+    fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
+    fs.renameSync(tmp, target);
+}
 
 // Configurazione porta seriale ESP32
 let serialPort = null;
@@ -128,10 +138,7 @@ app.post('/api/esp32/reconnect', async (req, res) => {
 // API: Salva configurazioni (stesso del server C#)
 app.post('/api/save_stl_config', (req, res) => {
     try {
-        fs.writeFileSync(
-            path.join(__dirname, 'config', 'robot6dof_stl_config.json'),
-            JSON.stringify(req.body, null, 2)
-        );
+        saveConfigFile('robot6dof_stl_config.json', req.body);
         res.json({ status: 'ok' });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -140,10 +147,7 @@ app.post('/api/save_stl_config', (req, res) => {
 
 app.post('/api/save_poses_config', (req, res) => {
     try {
-        fs.writeFileSync(
-            path.join(__dirname, 'config', 'robot6dof_saved_poses.json'),
-            JSON.stringify(req.body, null, 2)
-        );
+        saveConfigFile('robot6dof_saved_poses.json', req.body);
         res.json({ status: 'ok' });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -152,10 +156,7 @@ app.post('/api/save_poses_config', (req, res) => {
 
 app.post('/api/save_anim_config', (req, res) => {
     try {
-        fs.writeFileSync(
-            path.join(__dirname, 'config', 'robot6dof_animations.json'),
-            JSON.stringify(req.body, null, 2)
-        );
+        saveConfigFile('robot6dof_animations.json', req.body);
         res.json({ status: 'ok' });
     } catch (error) {
         res.status(500).json({ error: error.message });
