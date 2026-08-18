@@ -1,7 +1,7 @@
-﻿{
+{
   "version": 30,
   "type": "stl_configuration",
-  "timestamp": "2026-08-18T09:43:20.439Z",
+  "timestamp": "2026-08-18T11:07:36.885Z",
   "geo": {
     "d12": 50,
     "L1": 220,
@@ -56,15 +56,17 @@
   "stlWeights": {
     "base_finita.stl": 280,
     "braccio_1.stl": 175,
-    "braccio_1_vecchio.stl": 100,
     "braccio_2.stl": 145,
     "braccio_fine.stl": 85,
-    "collegamento_giunti_braccio_1.stl": 65,
     "collegamento_giunti_braccio_1_vecchio.stl": 100,
     "collegamento_giunti_braccio_2.stl": 65,
     "collegamento_giunti_braccio_3.stl": 55,
     "coperchio_base_rotante.stl": 160
   },
+  "removedAssets": [
+    "braccio_1_vecchio.stl",
+    "collegamento_giunti_braccio_1.stl"
+  ],
   "assets": [
     {
       "id": "base_finita_1",
@@ -73,75 +75,51 @@
       "scale": 1,
       "x": 0,
       "y": 0,
-      "z": 0,
-      "rx": 0,
+      "z": -320,
+      "rx": -90,
       "ry": 0,
       "rz": 0
     },
     {
       "id": "braccio_1_1",
       "name": "braccio_1.stl",
-      "attach": -1,
+      "attach": 1,
       "scale": 1,
       "x": 0,
-      "y": 0,
+      "y": -85,
       "z": 0,
-      "rx": 0,
+      "rx": -180,
       "ry": 0,
-      "rz": 0
-    },
-    {
-      "id": "braccio_1_vecchio_1",
-      "name": "braccio_1_vecchio.stl",
-      "attach": -1,
-      "scale": 1,
-      "x": 0,
-      "y": 0,
-      "z": 0,
-      "rx": 0,
-      "ry": 0,
-      "rz": 0
+      "rz": -180
     },
     {
       "id": "braccio_2_1",
       "name": "braccio_2.stl",
-      "attach": -1,
+      "attach": 3,
       "scale": 1,
       "x": 0,
-      "y": 0,
+      "y": -85,
       "z": 0,
-      "rx": 0,
-      "ry": 0,
+      "rx": -90,
+      "ry": -90,
       "rz": 0
     },
     {
       "id": "braccio_fine_1",
       "name": "braccio_fine.stl",
-      "attach": -1,
+      "attach": 5,
       "scale": 1,
       "x": 0,
-      "y": 0,
+      "y": -50,
       "z": 0,
-      "rx": 0,
-      "ry": 0,
-      "rz": 0
-    },
-    {
-      "id": "collegamento_giunti_braccio_1_1",
-      "name": "collegamento_giunti_braccio_1.stl",
-      "attach": -1,
-      "scale": 1,
-      "x": 0,
-      "y": 0,
-      "z": 0,
-      "rx": 0,
-      "ry": 0,
+      "rx": -90,
+      "ry": -90,
       "rz": 0
     },
     {
       "id": "collegamento_giunti_braccio_1_vecchio_1",
       "name": "collegamento_giunti_braccio_1_vecchio.stl",
-      "attach": -1,
+      "attach": 0,
       "scale": 1,
       "x": 0,
       "y": 0,
@@ -153,10 +131,10 @@
     {
       "id": "collegamento_giunti_braccio_2_1",
       "name": "collegamento_giunti_braccio_2.stl",
-      "attach": -1,
+      "attach": 2,
       "scale": 1,
       "x": 0,
-      "y": 0,
+      "y": -32,
       "z": 0,
       "rx": 0,
       "ry": 0,
@@ -165,10 +143,10 @@
     {
       "id": "collegamento_giunti_braccio_3_1",
       "name": "collegamento_giunti_braccio_3.stl",
-      "attach": -1,
+      "attach": 4,
       "scale": 1,
       "x": 0,
-      "y": 0,
+      "y": -30,
       "z": 0,
       "rx": 0,
       "ry": 0,
@@ -181,8 +159,8 @@
       "scale": 1,
       "x": 0,
       "y": 0,
-      "z": 0,
-      "rx": 0,
+      "z": -150,
+      "rx": -90,
       "ry": 0,
       "rz": 0
     }

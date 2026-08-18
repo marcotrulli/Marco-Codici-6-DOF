@@ -1,9 +1,9 @@
-﻿{
+{
   "version": 29,
   "type": "saved_poses_and_motion",
-  "timestamp": "2026-08-18T09:43:20.451Z",
+  "timestamp": "2026-08-18T11:07:36.911Z",
   "target": [
-    34.5,
+    -283.34481994138844,
     -427.2,
     210.2
   ],
@@ -69,13 +69,11 @@
     "stlWeights": {
       "base_finita.stl": 280,
       "coperchio_base_rotante.stl": 160,
-      "collegamento_giunti_braccio_1.stl": 65,
       "braccio_1.stl": 175,
       "collegamento_giunti_braccio_2.stl": 65,
       "braccio_2.stl": 145,
       "collegamento_giunti_braccio_3.stl": 55,
       "braccio_fine.stl": 85,
-      "braccio_1_vecchio.stl": 100,
       "collegamento_giunti_braccio_1_vecchio.stl": 100
     },
     "fea": {
@@ -86,5 +84,14 @@
     },
     "torqueProtection": true
   },
-  "poses": {}
+  "poses": {
+    "posa_corrente": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  }
 }
