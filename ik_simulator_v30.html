@@ -2319,6 +2319,7 @@ let dummyJoints=Array.from({length:7},()=>[0,0,0]),endpointDummy=[0,0,0],dummyMe
 for(let i=0;i<8;i++){let m=new THREE.Mesh(new THREE.SphereGeometry(8,12,12),dummyMat);dummyRoot.add(m);dummyMeshes.push(m)}
 const assets=[],assetRoot=new THREE.Group();scene.add(assetRoot);
 let selectedAssetIndex=-1,projectDir=null,projectTimer=null,isLocalServer=false;
+let removedStlNames=new Set();
 
 /* === OGGETTO CARICO 3D PINZA (PAYLOAD BOX) === */
 let payloadMesh = null, payloadEdges = null;
@@ -3222,6 +3223,7 @@ function stlConfigSnapshot(){
     dummyJoints,
     endpointDummy,
     stlWeights: Object.fromEntries(assets.map(a => [a.name, physicsConfig.stlWeights[a.name] || defaultStlWeights[a.name] || 100])),
+    removedAssets: [...removedStlNames],
     assets: assets.map(a=>({
       id: a.id,
       name: a.name,
@@ -3293,6 +3295,7 @@ function applyStlConfig(c){
   geo = Object.assign({}, geo, c.geo || {});
   Object.keys(geo).forEach(k => { if($(k)) $(k).value = geo[k]; });
   dummyJoints = (c.dummyJoints || dummyJoints).map(x => x.slice());
+  if(Array.isArray(c.removedAssets)) removedStlNames = new Set(c.removedAssets);
   endpointDummy = (c.endpointDummy || endpointDummy).slice();
   if(c.stlWeights) {
     physicsConfig.stlWeights = Object.assign({}, c.stlWeights);
@@ -3591,11 +3594,7 @@ async function autoInitOnStartup(){
       let configMap = new Map();
       if(stlConf && stlConf.assets) stlConf.assets.forEach(c => configMap.set(c.name, c));
 
-      let namesToLoad = stlList;
-      if(stlConf && Array.isArray(stlConf.assets) && stlConf.assets.length > 0){
-        let configNames = new Set(stlConf.assets.map(c => c.name));
-        namesToLoad = stlList.filter(n => configNames.has(n));
-      }
+      let namesToLoad = stlList.filter(n => !removedStlNames.has(n));
 
       for(let stlName of namesToLoad){
         try{
@@ -3991,6 +3990,7 @@ async function addStlFile(file,config=null){
   g.computeVertexNormals();g.center();
   let mesh=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0xa9c5c9,metalness:.25,roughness:.55})),root=new THREE.Group();
   root.add(mesh);assetRoot.add(root);
+  removedStlNames.delete(file.name);
   let a={id:config?.id||newAssetId(file.name),name:file.name,root,mesh,attach:config?.attach??-1,buffer:buffer};
   if(config){mesh.scale.setScalar(config.scale);mesh.position.set(config.x,config.z,-config.y);mesh.rotation.set(config.rx*D,config.rz*D,config.ry*D)}
   assets.push(a);
@@ -4009,6 +4009,7 @@ $('applyAsset').onclick=()=>{
 };
 $('deleteAsset').onclick=()=>{
   let i=+$('assetSelect').value,a=assets[i];if(!a)return;
+  removedStlNames.add(a.name);
   removeAssetAt(i);
   selectedAssetIndex=-1;refreshAssets();scheduleProjectWrite();
   $('status').innerHTML='<span class="good">STL eliminato.</span>';
