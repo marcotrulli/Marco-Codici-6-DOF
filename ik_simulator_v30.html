@@ -641,7 +641,7 @@ button.trail-btn:hover{
   </section>
 
   <!-- === PANNELLO CONTROLLO ESP32 (Raspberry Pi Only) === -->
-  <section class="block toolpane" id="esp32Pane">
+  <section class="block toolpane" id="esp32Pane" hidden>
     <h2>🤖 Controllo ESP32 (Hardware Reale)</h2>
     <div class="sub">Invia comandi all'ESP32 via seriale per il controllo fisico del braccio.</div>
     <div class="sub" style="color:#839aa0;font-size:10px">💡 Modalità simulazione se ESP32 non connesso - comandi vengono registrati ma non inviati</div>
@@ -2252,7 +2252,7 @@ $('btnDownloadAnim').onclick = () => {
 };
 $('btnReloadAnimOnly').onclick = async () => {
   try{
-    let conf = await tryServerFetch('/robot6dof_animations.json');
+    let conf = await tryServerFetch('/config/robot6dof_animations.json');
     if(conf){
       applyAnimConfig(conf);
       $('status').innerHTML = '<span class="good">✓ Animazioni ricaricate da disco!</span>';
@@ -3577,13 +3577,13 @@ async function autoInitOnStartup(){
     isLocalServer = true;
     $('modeBadge').innerHTML = '<span class="good">DigitalTwin6DOF Server (8765)</span>';
 
-    let stlConf = await tryServerFetch('/robot6dof_stl_config.json');
+    let stlConf = await tryServerFetch('/config/robot6dof_stl_config.json');
     if(stlConf) applyStlConfig(stlConf);
 
-    let posesConf = await tryServerFetch('/robot6dof_saved_poses.json');
+    let posesConf = await tryServerFetch('/config/robot6dof_saved_poses.json');
     if(posesConf) applyPosesConfig(posesConf);
 
-    let animConf = await tryServerFetch('/robot6dof_animations.json');
+    let animConf = await tryServerFetch('/config/robot6dof_animations.json');
     if(animConf) applyAnimConfig(animConf);
 
     if(stlList.length > 0){
@@ -4571,6 +4571,7 @@ document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>{
   $('setupPane').hidden = !(pane==='setup');
   $('speedPane').hidden = !(pane==='speed');
   $('projectPane').hidden = !(pane==='project');
+  $('esp32Pane').hidden = !(pane==='esp32');
 });
 
 let f0=fk(q);dummyJoints=f0.pts.map(p=>p.slice());endpointDummy=f0.end.slice();
