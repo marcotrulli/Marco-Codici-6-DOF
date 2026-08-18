@@ -4597,12 +4597,8 @@ autoInitOnStartup();
 
 // === ESP32 CONTROL CENTER - Gestione comunicazione seriale ===
 let esp32Connected = false;
+let esp32Port = null;
 let controlMode = 'simulation';
-
-// Funzione per rilevare se siamo su Raspberry Pi
-function isRaspberryPi() {
-  return navigator.userAgent.includes('Linux') && navigator.userAgent.includes('ARM');
-}
 
 // Aggiungi tab ESP32 - sempre visibile per testare comunicazione
 document.querySelector('[data-pane="esp32"]').style.display = 'block';
@@ -4613,28 +4609,32 @@ async function checkESP32Status() {
     const response = await fetch('/api/esp32/status');
     const data = await response.json();
     esp32Connected = data.connected;
-    updateESP32StatusUI();
+    esp32Port = data.port;
   } catch (error) {
-    console.log('ESP32 API non disponibile (modalità PC)');
     esp32Connected = false;
-    updateESP32StatusUI();
+    esp32Port = null;
   }
+  updateESP32StatusUI();
 }
 
 // Aggiorna UI stato ESP32
 function updateESP32StatusUI() {
   const statusEl = document.getElementById('esp32Status');
   if (esp32Connected) {
-    statusEl.innerHTML = '<span class="good">✅ ESP32 Connesso - Pronto per comandi</span>';
+    statusEl.innerHTML = `<span class="good">✅ ESP32 connesso su ${esp32Port || 'porta seriale'} - pronto per i comandi</span>`;
   } else {
-    statusEl.innerHTML = '<span class="bad">⚠️ ESP32 Non Connesso - Modalità solo simulazione</span>';
+    statusEl.innerHTML = '<span class="warn">⚠️ ESP32 non connesso - i comandi vengono solo registrati nel log</span>';
   }
 }
 
 // Invia comando all'ESP32
 async function sendToESP32(command) {
+  if (controlMode === 'simulation') {
+    logSerial(`🖥️ [simulazione] ${command}`);
+    return false;
+  }
   if (!esp32Connected) {
-    alert('ESP32 non connesso! Collega il dispositivo e riprova.');
+    logSerial(`❌ ESP32 non connesso: "${command}" non inviato. Collega la scheda e premi Riconnetti.`);
     return false;
   }
 
@@ -4689,9 +4689,16 @@ document.getElementById('reconnectESP32')?.addEventListener('click', async () =>
   try {
     const response = await fetch('/api/esp32/reconnect', { method: 'POST' });
     const data = await response.json();
-    esp32Connected = data.connected;
-    updateESP32StatusUI();
-    logSerial(data.connected ? '✅ Riconnesso con successo' : '❌ Riconnessione fallita');
+    await checkESP32Status();
+    if (data.connected) {
+      logSerial(`✅ Riconnesso su ${esp32Port || 'porta seriale'}`);
+    } else {
+      let ports = [];
+      try { ports = (await (await fetch('/api/serial/ports')).json()).ports || []; } catch (_) {}
+      logSerial(ports.length
+        ? `❌ ESP32 non riconosciuto. Porte seriali viste dal server: ${ports.join(', ')}`
+        : '❌ Nessuna porta seriale trovata: controlla il cavo USB e i driver CH340/CP210x.');
+    }
   } catch (error) {
     logSerial(`❌ Errore riconnessione: ${error.message}`);
   }
@@ -4699,20 +4706,14 @@ document.getElementById('reconnectESP32')?.addEventListener('click', async () =>
 
 document.getElementById('controlMode')?.addEventListener('change', (e) => {
   controlMode = e.target.value;
-  const controls = document.getElementById('esp32Controls');
-  if (controlMode === 'hardware') {
-    controls.style.display = 'block';
-    checkESP32Status();
-  } else {
-    controls.style.display = 'none';
-  }
+  logSerial(controlMode === 'hardware'
+    ? '🤖 Modalità hardware: i comandi vengono inviati all\'ESP32.'
+    : '🖥️ Modalità simulazione: i comandi vengono solo registrati.');
+  checkESP32Status();
 });
 
-// Check iniziale stato ESP32 (solo su Raspberry Pi)
-if (isRaspberryPi()) {
-  checkESP32Status();
-  setInterval(checkESP32Status, 5000); // Poll ogni 5 secondi
-}
+checkESP32Status();
+setInterval(checkESP32Status, 5000);
 </script>
 <script>document.querySelector('.tool.active').click();</script>
 </body>
